@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from .models import Post, User, Comment, Like
 from . import db
+from datetime import datetime
 
 views = Blueprint("views", __name__)
 
@@ -19,11 +20,12 @@ def home():
 def create_post():
     if request.method == "POST":
         text = request.form.get('text')
+        date_created = datetime.now()
 
         if not text:
             flash('Post cannot be empty', category='error')
         else:
-            post = Post(text=text, author=current_user.id)
+            post = Post(text=text, author=current_user.id, date_created=date_created)
             db.session.add(post)
             db.session.commit()
             flash('Post created!', category='success')
@@ -66,6 +68,7 @@ def posts(username):
 @login_required
 def create_comment(post_id):
     text = request.form.get('text')
+    date_created = datetime.now()
 
     if not text:
         flash('Comment cannot be empty.', category='error')
@@ -73,7 +76,7 @@ def create_comment(post_id):
         post = Post.query.filter_by(id=post_id)
         if post:
             comment = Comment(
-                text=text, author=current_user.id, post_id=post_id)
+                text=text, author=current_user.id, post_id=post_id, date_created=date_created)
             db.session.add(comment)
             db.session.commit()
         else:
@@ -104,6 +107,7 @@ def like(post_id):
     post = Post.query.filter_by(id=post_id).first()
     like = Like.query.filter_by(
         author=current_user.id, post_id=post_id).first()
+    date_created = datetime.now()
 
     if not post:
         return jsonify({'error': 'Post does not exist.'}, 400)
@@ -111,7 +115,7 @@ def like(post_id):
         db.session.delete(like)
         db.session.commit()
     else:
-        like = Like(author=current_user.id, post_id=post_id)
+        like = Like(author=current_user.id, post_id=post_id, date_created=date_created)
         db.session.add(like)
         db.session.commit()
 

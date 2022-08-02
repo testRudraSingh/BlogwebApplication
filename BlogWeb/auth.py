@@ -3,6 +3,7 @@ from . import db
 from .models import User
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 auth = Blueprint("auth", __name__)
 
@@ -34,6 +35,7 @@ def sign_up():
         username = request.form.get("username")
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
+        date_created = datetime.now()
 
         email_exists = User.query.filter_by(email=email).first()
         username_exists = User.query.filter_by(username=username).first()
@@ -52,7 +54,7 @@ def sign_up():
             flash("Email is invalid.", category='error')
         else:
             new_user = User(email=email, username=username, password=generate_password_hash(
-                password1, method='sha256'))
+                password1, method='sha256'), date_created=date_created)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
